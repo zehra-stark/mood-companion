@@ -3,7 +3,8 @@ import requests
 import json
 
 # ------------------- CONFIG -------------------
-API_URL = "https://dr6lm91ibb.execute-api.us-east-1.amazonaws.com/mood"  # Replace with your API Gateway URL
+API_URL = https://dr6lm91ibb.execute-api.us-east-1.amazonaws.com/mood"  # Replace with your API Gateway URL
+LOGO_URL = "https://pbs.twimg.com/profile_images/1615289734917689344/G5TDhGl2_400x400.jpg"
 
 st.set_page_config(page_title="🌟 Your Mood Companion 🌈", layout="wide", page_icon="🌟")
 
@@ -16,6 +17,8 @@ if "current_emotion" not in st.session_state:
     st.session_state.current_emotion = None
 if "bot_reply" not in st.session_state:
     st.session_state.bot_reply = None
+if "selfie" not in st.session_state:
+    st.session_state.selfie = None
 
 # ------------------- CUSTOM CSS -------------------
 st.markdown("""
@@ -25,16 +28,14 @@ st.markdown("""
     background: linear-gradient(135deg, #ff0000, #ff6600, #ffcc00);
     font-family: 'Arial', sans-serif;
     color: white;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    text-align: center;
 }
 
 /* Title */
 .title {
     text-align: center;
     font-size: 3.5em;
-    margin-bottom: 0.5em;
+    margin: 20px 0 40px 0;
     color: white;
     text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
 }
@@ -43,26 +44,26 @@ st.markdown("""
 .emoji-grid {
     display: flex;
     justify-content: center;
-    gap: 60px;
-    margin: 40px 0;
+    gap: 80px;
+    margin: 40px auto;
 }
 .emoji-btn {
-    font-size: 120px;
+    font-size: 150px;
     background: none;
     border: none;
     cursor: pointer;
     transition: transform 0.2s;
 }
 .emoji-btn:hover {
-    transform: scale(1.2);
+    transform: scale(1.3);
 }
 
-/* Reply box */
+/* Reply Box */
 .reply-box {
     background: black;
     color: white;
     text-align: center;
-    padding: 20px;
+    padding: 25px;
     font-size: 20px;
     border-radius: 15px;
     margin: 20px auto;
@@ -70,21 +71,17 @@ st.markdown("""
     box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 
-/* Input fields & buttons */
+/* Center Inputs */
 textarea, input, .stButton > button {
+    margin: auto;
+    display: block;
     background-color: black !important;
     color: white !important;
     border-radius: 8px !important;
 }
 
-/* Footer always at bottom */
-.footer {
-    margin-top: auto;
-    text-align: center;
-    color: white;
-    font-size: 18px;
-    padding: 20px 0;
-}
+/* Hide top menu and footer */
+header, footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -92,73 +89,87 @@ textarea, input, .stButton > button {
 
 # Home Page
 if st.session_state.page == "home":
+    st.image(LOGO_URL, width=120)
     st.markdown('<h1 class="title">🌟 Your Mood Companion 🌈</h1>', unsafe_allow_html=True)
+
     if st.button("🚀 What’s Your Mood Today?"):
         st.session_state.page = "emotion_selection"
         st.rerun()
 
 # Emotion Selection Page
 elif st.session_state.page == "emotion_selection":
+    st.image(LOGO_URL, width=120)
     st.markdown('<h1 class="title">🌟 What\'s Your Mood Today? 🌈</h1>', unsafe_allow_html=True)
 
-    # Emoji Buttons
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        if st.button("😡", key="angry_btn"): st.session_state.current_emotion = "angry"; st.session_state.page = "emotion_console"; st.rerun()
-    with col2:
-        if st.button("😢", key="sad_btn"): st.session_state.current_emotion = "sad"; st.session_state.page = "emotion_console"; st.rerun()
-    with col3:
-        if st.button("😀", key="happy_btn"): st.session_state.current_emotion = "happy"; st.session_state.page = "emotion_console"; st.rerun()
-    with col4:
-        if st.button("😨", key="fear_btn"): st.session_state.current_emotion = "fear"; st.session_state.page = "emotion_console"; st.rerun()
-    with col5:
-        if st.button("😖", key="disgust_btn"): st.session_state.current_emotion = "disgust"; st.session_state.page = "emotion_console"; st.rerun()
+    st.markdown('<div class="emoji-grid">', unsafe_allow_html=True)
+    if st.button("😡", key="angry_btn"): st.session_state.current_emotion = "angry"; st.session_state.page = "emotion_console"; st.rerun()
+    if st.button("😢", key="sad_btn"): st.session_state.current_emotion = "sad"; st.session_state.page = "emotion_console"; st.rerun()
+    if st.button("😀", key="happy_btn"): st.session_state.current_emotion = "happy"; st.session_state.page = "emotion_console"; st.rerun()
+    if st.button("😨", key="fear_btn"): st.session_state.current_emotion = "fear"; st.session_state.page = "emotion_console"; st.rerun()
+    if st.button("😖", key="disgust_btn"): st.session_state.current_emotion = "disgust"; st.session_state.page = "emotion_console"; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Emotion Console Page
 elif st.session_state.page == "emotion_console":
     emotion = st.session_state.current_emotion
+    st.image(LOGO_URL, width=120)
     st.markdown(f'<h1 class="title">🌟 {emotion.capitalize()} Console 🌈</h1>', unsafe_allow_html=True)
 
-    user_text = st.text_area("Share your thoughts:", key="user_input")
+    # Different flows for each emotion
+    if emotion == "happy":
+        st.write("✨ You look glowing today! Want to share your smile? Upload a selfie 😍")
+        uploaded = st.file_uploader("Click/Upload your Happy Selfie 📸", type=["jpg", "jpeg", "png"])
+        if uploaded:
+            st.session_state.selfie = uploaded
+            col1, col2 = st.columns([1,1])
+            with col1:
+                st.image(uploaded, width=250, caption="Your Happy Selfie 😊")
+            with col2:
+                st.markdown('<div class="reply-box">Yay! That smile made my day! 🌟 Keep shining 🌈</div>', unsafe_allow_html=True)
 
-    if st.button("💬 Submit"):
-        payload = {"user_id": st.session_state.user_id, "emotion": emotion, "text_input": user_text}
-        try:
-            response = requests.post(API_URL, json=payload, headers={"Content-Type": "application/json"})
-            if response.status_code == 200:
-                data = response.json()
-                if "body" in data:
-                    result = json.loads(data["body"])
-                else:
-                    result = data
-                st.session_state.bot_reply = result.get("reply", json.dumps(result))
-                st.balloons()
-                st.markdown(f'<div class="reply-box">{st.session_state.bot_reply}</div>', unsafe_allow_html=True)
-            else:
-                st.error(f"API Error: {response.status_code} - {response.text}")
-        except requests.exceptions.RequestException as e:
-            st.error(f"Failed to connect to API: {str(e)}")
+    elif emotion == "angry":
+        user_story = st.text_area("😡 I sense anger. Tell me what happened:")
+        if st.button("💬 Share"):
+            payload = {"user_id": st.session_state.user_id, "emotion": "angry", "text_input": user_story}
+            try:
+                response = requests.post(API_URL, json=payload, headers={"Content-Type": "application/json"})
+                if response.status_code == 200:
+                    data = response.json()
+                    reply = json.loads(data["body"]).get("bot_message", "I hear you.")
+                    st.markdown(f'<div class="reply-box">{reply}</div>', unsafe_allow_html=True)
+            except:
+                st.error("API not reachable")
+
+    elif emotion == "sad":
+        st.write("😢 Feeling low? Want me to suggest something cheerful?")
+        if st.button("🎶 Yes, play me something"):
+            st.markdown('<div class="reply-box">🎵 How about some uplifting music? Try listening to ‘Happy – Pharrell Williams’ 💛</div>', unsafe_allow_html=True)
+
+    elif emotion == "fear":
+        fear_input = st.text_area("😨 What’s worrying you?")
+        if st.button("💬 Share"):
+            st.markdown('<div class="reply-box">You are safe 💙 Try some deep breathing 🌬️</div>', unsafe_allow_html=True)
+
+    elif emotion == "disgust":
+        disgust_input = st.text_area("😖 What’s making you uncomfortable?")
+        if st.button("💬 Share"):
+            st.markdown('<div class="reply-box">😌 Sometimes stepping away helps. Want me to suggest a calming activity?</div>', unsafe_allow_html=True)
 
     if st.button("✅ Now, is your mood okay?"):
         st.session_state.page = "closing"
         st.rerun()
 
-    if st.button("🔙 Back to Moods"):
-        st.session_state.page = "emotion_selection"
-        st.rerun()
-
 # Closing Page
 elif st.session_state.page == "closing":
+    st.image(LOGO_URL, width=120)
     st.markdown('<h1 class="title">🌟 Session Complete 🌈</h1>', unsafe_allow_html=True)
-    st.markdown('<div class="closing-text">Thanks for sharing your feelings today 💙</div>', unsafe_allow_html=True)
-    st.markdown('<div class="closing-text">💡 Quote: "Every storm runs out of rain 🌦️"</div>', unsafe_allow_html=True)
+    st.markdown('<div class="reply-box">Thanks for sharing your feelings today 💙</div>', unsafe_allow_html=True)
+    st.markdown('<div class="reply-box">💡 Quote: "Every storm runs out of rain 🌦️"</div>', unsafe_allow_html=True)
 
     if st.button("🚀 Start New Session"):
         st.session_state.page = "home"
         st.session_state.bot_reply = None
         st.session_state.current_emotion = None
+        st.session_state.selfie = None
         st.rerun()
-
-# Footer
-st.markdown('<div class="footer">Powered by Whizlabs Team ❤️</div>', unsafe_allow_html=True)
 
