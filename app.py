@@ -3,7 +3,7 @@ import requests
 import json
 
 # ------------------- CONFIG -------------------
-API_URL = https://dr6lm91ibb.execute-api.us-east-1.amazonaws.com/mood"  # Replace with your API Gateway URL
+API_URL = "https://dr6lm91ibb.execute-api.us-east-1.amazonaws.com/mood"  # Replace with your API Gateway URL
 LOGO_URL = "https://pbs.twimg.com/profile_images/1615289734917689344/G5TDhGl2_400x400.jpg"
 
 st.set_page_config(page_title="🌟 Your Mood Companion 🌈", layout="wide", page_icon="🌟")
