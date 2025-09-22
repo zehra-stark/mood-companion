@@ -15,12 +15,14 @@ if "history" not in st.session_state:
     st.session_state.history = []
 if "current_emotion" not in st.session_state:
     st.session_state.current_emotion = None
+if "user_id" not in st.session_state:
+    st.session_state.user_id = ""
 
-# Custom CSS with Whizlabs Red Gradient
+# Custom CSS with Refined Whizlabs Red Gradient
 st.markdown("""
 <style>
     .stApp {
-        background: linear-gradient(135deg, #FF4040, #FF6B6B);
+        background: linear-gradient(135deg, #FF3333, #FF6666);
         color: black;
         font-family: 'Arial', sans-serif;
     }
@@ -31,14 +33,8 @@ st.markdown("""
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         color: black;
     }
-    .subtitle {
-        text-align: center;
-        font-size: 1.2em;
-        margin-bottom: 2em;
-        color: black;
-    }
     .big-button {
-        background: linear-gradient(45deg, #FF4040, #FF6B6B);
+        background: black;
         color: white;
         padding: 20px 40px;
         font-size: 24px;
@@ -55,25 +51,24 @@ st.markdown("""
         box-shadow: 0 12px 24px rgba(0,0,0,0.3);
     }
     .emoji-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 20px;
-        justify-items: center;
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin: 20px 0;
     }
     .emoji-btn {
-        background: rgba(255,255,255,0.3);
+        background: none;
         color: black;
-        padding: 30px;
-        font-size: 48px;
+        padding: 50px;
+        font-size: 80px;
         border: none;
         border-radius: 50%;
         cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
+        transition: transform 0.2s;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     .emoji-btn:hover {
         transform: scale(1.2);
-        background: rgba(255,255,255,0.5);
     }
     .console-section {
         background: rgba(255,255,255,0.2);
@@ -90,7 +85,7 @@ st.markdown("""
         margin-top: 50px;
     }
     .back-btn {
-        background: #FF4040;
+        background: #FF3333;
         color: white;
         padding: 10px 20px;
         font-size: 18px;
@@ -115,7 +110,7 @@ st.markdown("""
     .breathing-circle {
         width: 100px;
         height: 100px;
-        background: linear-gradient(45deg, #FF4040, #FF6B6B);
+        background: linear-gradient(45deg, #FF3333, #FF6666);
         border-radius: 50%;
         margin: 20px auto;
         animation: breathe 4s infinite;
@@ -125,7 +120,7 @@ st.markdown("""
         padding: 10px;
         margin: 10px 0;
         border-radius: 5px;
-        border: 1px solid #FF6B6B;
+        border: 1px solid #FF6666;
         color: black;
     }
 </style>
@@ -134,31 +129,34 @@ st.markdown("""
 # Home Page
 if st.session_state.page == "home":
     st.markdown('<h1 class="title">🌟 Your Mood Companion 🌈</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Your AI companion for emotional support (User ID: Whiz-User)</p>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🚀 Click Me!", key="start", help="Begin your mood journey!"):
+    st.session_state.user_id = st.text_input("Enter User ID (Default: Whiz-User)", value="Whiz-User", key="user_id_input")
+    if st.button("🚀 Click Me!", key="start", help="Begin your mood journey!"):
+        if st.session_state.user_id:
             st.session_state.page = "emotion_selection"
             st.rerun()
+        else:
+            st.error("Please enter a User ID.")
 
 # Emotion Selection Page
 elif st.session_state.page == "emotion_selection":
     st.markdown('<h1 class="title">🌟 What\'s Your Mood Today? 🌈</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Click an emoji to express how you feel today</p>', unsafe_allow_html=True)
     html("""
     <div class="emoji-grid">
-        <button class="emoji-btn" onclick="selectEmotion('angry')">😡</button>
-        <button class="emoji-btn" onclick="selectEmotion('sad')">😢</button>
-        <button class="emoji-btn" onclick="selectEmotion('happy')">😀</button>
-        <button class="emoji-btn" onclick="selectEmotion('fear')">😨</button>
-        <button class="emoji-btn" onclick="selectEmotion('disgust')">😖</button>
+        <button class="emoji-btn" onclick="window.parent.location='/run?emotion=angry'">😡</button>
+        <button class="emoji-btn" onclick="window.parent.location='/run?emotion=sad'">😢</button>
+        <button class="emoji-btn" onclick="window.parent.location='/run?emotion=happy'">😀</button>
+        <button class="emoji-btn" onclick="window.parent.location='/run?emotion=fear'">😨</button>
+        <button class="emoji-btn" onclick="window.parent.location='/run?emotion=disgust'">😖</button>
     </div>
     <script>
-        function selectEmotion(emotion) {
-            streamlit.setComponentValue(emotion);
+        // Redirect to next page with emotion parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const emotion = urlParams.get('emotion');
+        if (emotion) {
+            window.parent.streamlit_set_component_value(emotion);
         }
     </script>
-    """, height=200)
+    """, height=300)
     selected = st.session_state.get('selected_emotion')
     if selected:
         st.session_state.current_emotion = selected
@@ -173,7 +171,7 @@ elif st.session_state.page == "emotion_console":
     if emotion == "angry":
         text_input = st.text_area("What happened?", key="angry_input", class_="text-box")
         if st.button("Share", key="angry_share"):
-            payload = {"user_id": "Whiz-User", "text_input": text_input}
+            payload = {"user_id": st.session_state.user_id, "text_input": text_input}
             try:
                 response = requests.post(API_URL, json=payload, headers={"Content-Type": "application/json"})
                 if response.status_code == 200:
@@ -184,14 +182,14 @@ elif st.session_state.page == "emotion_console":
                     st.markdown('<div class="console-section"><h3>🧠 AI Response:</h3><p>{}</p></div>'.format(result["ai_response"]), unsafe_allow_html=True)
                     st.markdown('<h3>💡 Suggestions</h3>', unsafe_allow_html=True)
                     st.markdown('<div class="animation-container"><button onclick="startBreathing()">🧘 Breathing Exercise</button></div>', unsafe_allow_html=True)
-                    st.write("Humor Chat: " + result["ai_response"])  # Use AI response as joke
+                    st.write("Humor Chat: " + result["ai_response"])
                 else:
                     st.error(f"API Error: {response.status_code} - {response.text}")
             except requests.exceptions.RequestException as e:
                 st.error(f"Failed to connect to API: {str(e)}")
     else:
         if st.button("💬 Get Support", key="get_support"):
-            payload = {"user_id": "Whiz-User", "emotion": emotion}
+            payload = {"user_id": st.session_state.user_id, "emotion": emotion}
             try:
                 response = requests.post(API_URL, json=payload, headers={"Content-Type": "application/json"})
                 if response.status_code == 200:
@@ -246,17 +244,6 @@ elif st.session_state.page == "closing":
         st.session_state.history = []
         st.session_state.current_emotion = None
         st.rerun()
-
-# Sidebar for History
-st.sidebar.markdown('<h2>🌟 Your Journey 🌈</h2>', unsafe_allow_html=True)
-if st.session_state.history:
-    for i, entry in enumerate(reversed(st.session_state.history), 1):
-        with st.sidebar.expander(f"Session #{i} - {entry['detected_emotion']}"):
-            st.sidebar.write(f"**Bot:** {entry['bot_message'][:50]}...")
-            st.sidebar.write(f"**AI:** {entry['ai_response'][:50]}...")
-            st.sidebar.write(f"**Suggestion:** {entry['suggestion']}")
-else:
-    st.sidebar.info("No sessions yet. Start one!")
 
 # Footer
 st.markdown("---")
