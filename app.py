@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 import json
-from datetime import datetime
 
 # ------------------- CONFIG -------------------
 API_URL = "https://dr6lm91ibb.execute-api.us-east-1.amazonaws.com/mood"  # Replace with your API Gateway URL
@@ -21,10 +20,14 @@ if "bot_reply" not in st.session_state:
 # ------------------- CUSTOM CSS -------------------
 st.markdown("""
 <style>
+/* Background Gradient */
 .stApp {
-    background: linear-gradient(135deg, #ffffff, #ff6666, #ff9900);
+    background: linear-gradient(135deg, #ff0000, #ff6600, #ffcc00);
     font-family: 'Arial', sans-serif;
     color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Title */
@@ -40,7 +43,7 @@ st.markdown("""
 .emoji-grid {
     display: flex;
     justify-content: center;
-    gap: 50px;
+    gap: 60px;
     margin: 40px 0;
 }
 .emoji-btn {
@@ -51,7 +54,7 @@ st.markdown("""
     transition: transform 0.2s;
 }
 .emoji-btn:hover {
-    transform: scale(1.3);
+    transform: scale(1.2);
 }
 
 /* Reply box */
@@ -67,24 +70,26 @@ st.markdown("""
     box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 
-/* Text areas & inputs */
+/* Input fields & buttons */
 textarea, input, .stButton > button {
     background-color: black !important;
     color: white !important;
     border-radius: 8px !important;
 }
 
-/* Footer */
+/* Footer always at bottom */
 .footer {
+    margin-top: auto;
     text-align: center;
     color: white;
     font-size: 18px;
-    margin-top: 80px;
+    padding: 20px 0;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------- PAGES -------------------
+
 # Home Page
 if st.session_state.page == "home":
     st.markdown('<h1 class="title">🌟 Your Mood Companion 🌈</h1>', unsafe_allow_html=True)
@@ -96,6 +101,7 @@ if st.session_state.page == "home":
 elif st.session_state.page == "emotion_selection":
     st.markdown('<h1 class="title">🌟 What\'s Your Mood Today? 🌈</h1>', unsafe_allow_html=True)
 
+    # Emoji Buttons
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         if st.button("😡", key="angry_btn"): st.session_state.current_emotion = "angry"; st.session_state.page = "emotion_console"; st.rerun()
@@ -125,7 +131,7 @@ elif st.session_state.page == "emotion_console":
                     result = json.loads(data["body"])
                 else:
                     result = data
-                st.session_state.bot_reply = result.get("reply", "No reply received.")
+                st.session_state.bot_reply = result.get("reply", json.dumps(result))
                 st.balloons()
                 st.markdown(f'<div class="reply-box">{st.session_state.bot_reply}</div>', unsafe_allow_html=True)
             else:
@@ -153,6 +159,6 @@ elif st.session_state.page == "closing":
         st.session_state.current_emotion = None
         st.rerun()
 
-# Footer (always bottom)
+# Footer
 st.markdown('<div class="footer">Powered by Whizlabs Team ❤️</div>', unsafe_allow_html=True)
 
